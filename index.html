@@ -1,0 +1,298 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>BPA Job Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: summary strip, month mini-calendars as a jump map, then a day-by-day board grouped by month */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --surface-2:#eaeef2; --line:#d5dbe2;
+  --fg:#16202b; --muted:#5a6776; --accent:#0b5cad; --accent-soft:#e3eefa;
+  --warn:#b86a00; --warn-bg:#fff4e0; --warn-line:#f0c170;
+  --crit:#b3261e; --crit-bg:#fdebea; --crit-line:#eea29c;
+  --ok:#2f7d4f;
+  --randy:#0f7c8a; --randy-bg:#e2f4f6; --brad:#6d4bc4; --brad-bg:#efeafb;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f151c; --surface:#17202a; --surface-2:#1e2935; --line:#2c3a48;
+  --fg:#e6ecf2; --muted:#9aa8b7; --accent:#6aa9ec; --accent-soft:#18304a;
+  --warn:#f0b04a; --warn-bg:#33260f; --warn-line:#7a5a1c;
+  --crit:#ff8a80; --crit-bg:#3a1a19; --crit-line:#83322d; --ok:#6cc893; --randy:#52c6d3; --randy-bg:#11323a; --brad:#b8a2f7; --brad-bg:#2a2244; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151c; --surface:#17202a; --surface-2:#1e2935; --line:#2c3a48;
+  --fg:#e6ecf2; --muted:#9aa8b7; --accent:#6aa9ec; --accent-soft:#18304a;
+  --warn:#f0b04a; --warn-bg:#33260f; --warn-line:#7a5a1c;
+  --crit:#ff8a80; --crit-bg:#3a1a19; --crit-line:#83322d; --ok:#6cc893; --randy:#52c6d3; --randy-bg:#11323a; --brad:#b8a2f7; --brad-bg:#2a2244; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:28px 60px;display:flex;flex-direction:column;gap:26px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+.eyebrow{font:600 12px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font:700 40px/1 var(--display);margin:6px 0 0;letter-spacing:.01em;text-wrap:balance}
+.asof{color:var(--muted);font-size:13px;text-align:right}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.kpi b{display:block;font:700 32px/1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:13px}
+.kpi.warn b{color:var(--warn)} .kpi.crit b{color:var(--crit)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid var(--line)}
+.sw.one{background:var(--accent-soft);border-color:var(--accent)}
+.sw.warn{background:var(--warn-bg);border-color:var(--warn)}
+.sw.crit{background:var(--crit-bg);border-color:var(--crit)}
+.cals{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}
+.cal h3{font:600 17px/1 var(--display);margin:0 0 8px;letter-spacing:.03em}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-variant-numeric:tabular-nums}
+.grid7 .dow{font-size:10px;color:var(--muted);text-align:center;letter-spacing:.05em}
+.grid7 .d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:4px;color:var(--muted);border:1px solid transparent}
+.grid7 button.d{font:inherit;font-size:12px;cursor:pointer;color:var(--fg);font-weight:600}
+.grid7 .d.one{background:var(--accent-soft);border-color:var(--accent)}
+.grid7 .d.warn{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+.grid7 .d.crit{background:var(--crit-bg);border-color:var(--crit);color:var(--crit)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
+.controls input[type=search],.controls select{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);min-width:0}
+.controls input[type=search]{flex:1 1 220px}
+.controls label{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);cursor:pointer}
+.count{font-size:13px;color:var(--muted);margin-left:auto}
+.month h2{font:700 24px/1 var(--display);margin:0 0 10px;letter-spacing:.02em}
+.month{display:flex;flex-direction:column}
+.days{display:flex;flex-direction:column;gap:10px}
+.day{display:grid;grid-template-columns:92px minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;scroll-margin-top:70px}
+.day .date{padding:12px;border-right:1px solid var(--line);background:var(--surface-2);display:flex;flex-direction:column;gap:2px}
+.day .date .dw{font:600 12px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.day .date .dn{font:700 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.day .date .mo{font-size:12px;color:var(--muted)}
+.day.warn{border-color:var(--warn-line)} .day.warn .date{background:var(--warn-bg);border-right-color:var(--warn-line)} .day.warn .dn{color:var(--warn)}
+.day.crit{border-color:var(--crit-line)} .day.crit .date{background:var(--crit-bg);border-right-color:var(--crit-line)} .day.crit .dn{color:var(--crit)}
+.body{display:flex;flex-direction:column;min-width:0}
+.flag{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 0}
+.pill{font:600 12px/1 var(--body);padding:5px 8px;border-radius:999px;letter-spacing:.02em}
+.pill.warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-line)}
+.pill.crit{background:var(--crit-bg);color:var(--crit);border:1px solid var(--crit-line)}
+.job{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,.9fr) auto;gap:6px 16px;align-items:center;padding:11px 14px;border-top:1px solid var(--line)}
+.job:first-child{border-top:0}
+.flag + .jobs .job:first-child{border-top:0}
+.site{font-weight:600;font-size:16px}
+.site small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.time{font-variant-numeric:tabular-nums}
+.time small{display:block;color:var(--muted);font-size:12px}
+.job{border-left:5px solid transparent}
+.job.randy{border-left-color:var(--randy)}
+.job.brad{border-left-color:var(--brad)}
+.resp{font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:600 13px/1 var(--body);padding:5px 9px;border-radius:999px}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.chip.randy{color:var(--randy);background:var(--randy-bg)}
+.chip.brad{color:var(--brad);background:var(--brad-bg)}
+.resp.hit .chip{outline:2px solid var(--crit);outline-offset:1px}
+.sw.randy{background:var(--randy);border-color:var(--randy)}
+.sw.brad{background:var(--brad);border-color:var(--brad)}
+.dots{display:flex;gap:2px;position:absolute;bottom:2px;left:50%;transform:translateX(-50%)}
+.dots i{width:5px;height:5px;border-radius:50%}
+.dots i.randy{background:var(--randy)} .dots i.brad{background:var(--brad)}
+.grid7 .d{position:relative}
+.links{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.btn{font:600 12px/1 var(--body);padding:7px 10px;border:1px solid var(--line);border-radius:6px;color:var(--accent);background:var(--surface);white-space:nowrap}
+.btn:hover{border-color:var(--accent);text-decoration:none}
+.tag{font:600 11px/1 var(--body);padding:3px 6px;border-radius:4px;background:var(--surface-2);color:var(--muted);letter-spacing:.04em;margin-left:6px;vertical-align:1px}
+.empty{padding:30px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:8px}
+footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+@media (max-width:760px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .job{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .links{grid-column:1 / -1;justify-content:flex-start}
+  h1{font-size:32px}
+  .asof{text-align:left}
+}
+@media (max-width:440px){ .day{grid-template-columns:70px minmax(0,1fr)} .day .date .dn{font-size:24px} .job{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth} }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Bonneville Power Administration · Audiometric Testing</div>
+      <h1>BPA Job Board</h1>
+    </div>
+    <div class="asof">Placeholder holds as of Sep 29, 2026<br>28 sites · times shown as on the HubSpot placeholders (Mountain Time)</div>
+  </header>
+
+  <section class="kpis" aria-label="Summary">
+    <div class="kpi"><b id="kJobs">0</b><span>Upcoming site jobs</span></div>
+    <div class="kpi"><b id="kDays">0</b><span>Service days held</span></div>
+    <div class="kpi warn"><b id="kMulti">0</b><span>Days with multiple sites</span></div>
+    <div class="kpi crit"><b id="kCrit">0</b><span>Days a responder is double-booked</span></div>
+  </section>
+
+  <div class="legend">
+    <span><i class="sw one"></i>One site that day</span>
+    <span><i class="sw warn"></i>Multiple sites the same day</span>
+    <span><i class="sw crit"></i>Multiple sites and the same responder's hours overlap</span>
+    <span><i class="sw randy"></i>Randy Harrison</span>
+    <span><i class="sw brad"></i>Bradley Kearns</span>
+  </div>
+
+  <section class="cals" id="cals" aria-label="Calendar overview"></section>
+
+  <div class="controls">
+    <input type="search" id="q" placeholder="Search site, city or responder" aria-label="Search">
+    <select id="resp" aria-label="Responder">
+      <option value="">All responders</option>
+      <option>Randy Harrison</option>
+      <option>Bradley Kearns</option>
+    </select>
+    <label><input type="checkbox" id="flagOnly"> Flagged days only</label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <main id="board"></main>
+
+  <footer>
+    <span>Umbrella deal: <a href="https://app.hubspot.com/contacts/241994300/record/0-3/340880226020" target="_blank" rel="noopener">Bonneville Power Administration - 2027 - Audio</a> ($71,040, Scheduling and Contract Negotiation). Idaho Falls renewal is Closed Lost and not shown.</span>
+    <span>Celilo: the placeholder shows Tue 2/23, but the renewal deal's Hold 1 is Wed 2/3/2027, 1pm-2pm. The placeholder is named after the 2026 Closed Won deal.</span>
+    <span>Snapshot from HubSpot Placeholder Jobs and Deals. Ask Claude to refresh after holds change.</span>
+  </footer>
+</div>
+
+<script>
+const HS="https://app.hubspot.com/contacts/241994300/record/";
+const R="Randy Harrison", B="Bradley Kearns";
+// start/end are placeholder times as shown in HubSpot (Mountain Time)
+const JOBS=[
+ {site:"HMEM",city:"Pasco, WA",deal:246540334779,pj:336877630201,close:"2026-12-10",s:"2027-03-16T08:00",e:"2027-03-18T13:00",r:R},
+ {site:"Pasco Construction Group",city:"Pasco, WA",deal:246582450914,pj:336886682327,close:"2026-12-12",s:"2026-12-08T07:00",e:"2026-12-10T16:00",r:R},
+ {site:"Chemawa",city:"Salem, OR",deal:286690971331,pj:336908049117,close:"2027-02-02",s:"2027-02-01T08:00",e:"2027-02-01T12:00",r:R},
+ {site:"Keeler",city:"Hillsboro, OR",deal:286698177245,pj:337169851119,close:"2027-02-02",s:"2027-02-01T08:00",e:"2027-02-01T12:00",r:R},
+ {site:"Wenatchee District",city:"Wenatchee, WA",deal:301970798282,pj:337187073751,close:"2027-02-05",s:"2027-02-23T08:00",e:"2027-02-23T13:00",r:B},
+ {site:"Custer",city:"Custer, WA",deal:315291961057,pj:337171644120,close:"2027-02-17",s:"2027-02-16T08:00",e:"2027-02-16T11:00",r:B},
+ {site:"Snohomish",city:"Snohomish, WA",deal:305985177289,pj:338087903982,close:"2027-02-17",s:"2027-02-16T14:00",e:"2027-02-16T17:00",r:B},
+ {site:"Covington",city:"Kent, WA",deal:306011685594,pj:338130493114,close:"2027-02-18",s:"2027-02-16T08:00",e:"2027-02-16T11:30",r:B},
+ {site:"Ross Complex",city:"Vancouver, WA",deal:322800148184,pj:337047603909,close:"2027-02-18",s:"2027-04-13T07:00",e:"2027-04-15T12:00",r:R},
+ {site:"Ross MHQ",city:"Vancouver, WA",deal:306008039159,pj:336895859419,close:"2027-02-18",s:"2027-02-17T07:00",e:"2027-02-17T12:00",r:R},
+ {site:"Olympia",city:"Olympia, WA",deal:315277613800,pj:336908048114,close:"2027-02-19",s:"2027-02-17T08:00",e:"2027-02-17T11:00",r:B},
+ {site:"Big Eddy",city:"The Dalles, OR",deal:312789830364,pj:336786368196,close:"2027-02-24",s:"2027-02-23T08:00",e:"2027-02-23T11:00",r:R},
+ {site:"Celilo",city:"The Dalles, OR",deal:309702295254,pj:337693327048,close:"2027-02-24",s:"2027-02-23T13:00",e:"2027-02-23T14:00",r:R},
+ {site:"Ashe",city:"Richland, WA",deal:309720263386,pj:336874532585,close:"2027-02-25",s:"2027-02-24T08:00",e:"2027-02-24T09:00",r:R},
+ {site:"Bell",city:"Spokane, WA",deal:315315354331,pj:337036732091,close:"2027-02-25",s:"2027-02-24T08:00",e:"2027-02-24T11:00",r:B},
+ {site:"Pasco District",city:"Pasco, WA",deal:316281236176,pj:337148261065,close:"2027-02-25",s:"2027-02-24T11:00",e:"2027-02-24T14:00",r:R},
+ {site:"Clarkston",city:"Clarkston, WA",deal:316298911420,pj:338109571786,close:"2027-02-26",s:"2027-02-25T09:00",e:"2027-02-25T10:00",r:B},
+ {site:"Mead",city:"Mead, WA",deal:315851351765,pj:338087904966,close:"2027-02-26",s:"2027-02-24T14:00",e:"2027-02-25T15:00",r:B},
+ {site:"Chehalis",city:"Chehalis, WA",deal:315347410619,pj:338022938328,close:"2027-03-04",s:"2027-02-17T13:00",e:"2027-02-17T14:00",r:B},
+ {site:"Port Angeles",city:"Port Angeles, WA",deal:315858522867,pj:336895635164,close:"2027-03-06",s:"2027-03-04T12:00",e:"2027-03-04T13:00",r:B},
+ {site:"Burley",city:"Idaho Falls, ID",deal:317007448783,pj:336970219250,close:"2027-03-10",s:"2027-03-09T13:00",e:"2027-03-09T13:30",r:B},
+ {site:"Longview",city:"Longview, WA",deal:316281152195,pj:338123971279,close:"2027-03-10",s:"2027-02-18T08:00",e:"2027-02-18T10:00",r:B},
+ {site:"Alvey",city:"Eugene, OR",deal:317402067692,pj:338096533178,close:"2027-03-16",s:"2027-03-25T13:30",e:"2027-03-25T16:30",r:R},
+ {site:"Kalispell",city:"Kalispell, MT",deal:318908559087,pj:338157471468,close:"2027-03-18",s:"2027-03-11T08:00",e:"2027-03-11T11:00",r:B},
+ {site:"North Bend",city:"North Bend, OR",deal:321975225043,pj:338078985951,close:"2027-03-18",s:"2027-03-25T08:00",e:"2027-03-25T10:00",r:R},
+ {site:"Malin",city:"Malin, OR",deal:317842081481,pj:336970214090,close:"2027-03-19",s:"2027-03-24T08:00",e:"2027-03-24T09:00",r:R},
+ {site:"Redmond",city:"Redmond, OR",deal:321955376872,pj:337148259033,close:"2027-03-24",s:"2027-03-23T07:00",e:"2027-03-23T10:00",r:R},
+ {site:"McNary",city:"Umatilla, OR",deal:325677131474,pj:336840265462,close:"2027-05-04",s:"2027-03-16T14:30",e:"2027-03-16T16:30",r:R}
+];
+const rc=r=>r==="Randy Harrison"?"randy":"brad";
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const pd=s=>{const [y,m,d]=s.slice(0,10).split("-").map(Number);return new Date(y,m-1,d)};
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const hm=t=>{let [h,m]=t.split(":").map(Number);const ap=h>=12?"pm":"am";h=h%12||12;return m?`${h}:${String(m).padStart(2,"0")}${ap}`:`${h}${ap}`};
+const md=s=>{const d=pd(s);return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`};
+
+// Expand each hold into the days it covers, with that day's slice of hours
+const days={};
+JOBS.forEach(j=>{
+  const a=pd(j.s), b=pd(j.e); const total=Math.round((b-a)/864e5)+1; let i=0;
+  for(let d=new Date(a); d<=b; d.setDate(d.getDate()+1)){
+    i++; const k=iso(d);
+    const st= k===j.s.slice(0,10)? j.s.slice(11): "00:00";
+    const en= k===j.e.slice(0,10)? j.e.slice(11): "23:59";
+    (days[k]=days[k]||[]).push({...j,dayStart:st,dayEnd:en,dayN:i,dayT:total});
+  }
+});
+// Classify each day
+const info={};
+Object.entries(days).forEach(([k,list])=>{
+  list.sort((x,y)=>x.dayStart.localeCompare(y.dayStart));
+  const sites=new Set(list.map(x=>x.site));
+  const clash=new Set(); const clashPairs=[];
+  for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){
+    const x=list[i],y=list[j];
+    if(x.r===y.r && x.dayStart<y.dayEnd && y.dayStart<x.dayEnd){clash.add(x.site);clash.add(y.site);clashPairs.push([x,y])}
+  }
+  info[k]={list,level: sites.size<2?"one":(clash.size?"crit":"warn"),clash,clashPairs,sites:sites.size};
+});
+const keys=Object.keys(info).sort();
+document.getElementById("kJobs").textContent=JOBS.length;
+document.getElementById("kDays").textContent=keys.length;
+document.getElementById("kMulti").textContent=keys.filter(k=>info[k].level!=="one").length;
+document.getElementById("kCrit").textContent=keys.filter(k=>info[k].level==="crit").length;
+
+// Mini calendars
+const months=[...new Set(keys.map(k=>k.slice(0,7)))];
+document.getElementById("cals").innerHTML=months.map(ym=>{
+  const [y,m]=ym.split("-").map(Number); const first=new Date(y,m-1,1); const n=new Date(y,m,0).getDate();
+  let cells=DOW.map(d=>`<div class="dow">${d[0]}</div>`).join("");
+  for(let i=0;i<first.getDay();i++) cells+=`<div></div>`;
+  for(let d=1; d<=n; d++){
+    const k=`${ym}-${String(d).padStart(2,"0")}`; const f=info[k];
+    cells+= f? `<button class="d ${f.level}" data-go="${k}" title="${f.list.map(x=>x.site).join(', ')}" aria-label="${MONL[m-1]} ${d}: ${f.list.map(x=>x.site+' ('+x.r+')').join(', ')}">${d}<span class="dots">${f.list.map(x=>`<i class="${rc(x.r)}"></i>`).join('')}</span></button>` : `<div class="d">${d}</div>`;
+  }
+  return `<div class="cal"><h3>${MONL[m-1]} ${y}</h3><div class="grid7">${cells}</div></div>`;
+}).join("");
+document.getElementById("cals").addEventListener("click",e=>{
+  const b=e.target.closest("[data-go]"); if(!b) return;
+  const el=document.getElementById("d"+b.dataset.go);
+  if(el){ el.scrollIntoView({block:"start"}); el.querySelector("a")?.focus({preventScroll:true}); }
+});
+
+function render(){
+  const q=document.getElementById("q").value.trim().toLowerCase();
+  const rf=document.getElementById("resp").value;
+  const fo=document.getElementById("flagOnly").checked;
+  let shown=0, jobsShown=new Set(), html="", cur="";
+  keys.forEach(k=>{
+    const f=info[k];
+    if(fo && f.level==="one") return;
+    const list=f.list.filter(x=>(!rf||x.r===rf)&&(!q||(x.site+" "+x.city+" "+x.r).toLowerCase().includes(q)));
+    if(!list.length) return;
+    const ym=k.slice(0,7);
+    if(ym!==cur){ if(cur) html+=`</div></section>`; cur=ym; const [y,m]=ym.split("-").map(Number); html+=`<section class="month"><h2>${MONL[m-1]} ${y}</h2><div class="days">`; }
+    shown++; list.forEach(x=>jobsShown.add(x.site));
+    const d=pd(k);
+    let flags="";
+    if(f.level!=="one") flags+=`<span class="pill ${f.level}">${f.sites} sites this day</span>`;
+    f.clashPairs.forEach(([x,y])=>flags+=`<span class="pill crit">${x.r}: ${x.site} and ${y.site} overlap</span>`);
+    html+=`<article class="day ${f.level}" id="d${k}">
+      <div class="date"><span class="dw">${DOW[d.getDay()]}</span><span class="dn">${d.getDate()}</span><span class="mo">${MON[d.getMonth()]} ${d.getFullYear()}</span></div>
+      <div class="body">${flags?`<div class="flag">${flags}</div>`:""}<div class="jobs">${list.map(x=>{
+        const multi=x.dayT>1?`<span class="tag">DAY ${x.dayN} OF ${x.dayT}</span>`:"";
+        const sd=pd(x.s), ed=pd(x.e);
+        const t= x.dayT>1
+          ? `${hm(x.s.slice(11))} ${DOW[sd.getDay()]} ${sd.getMonth()+1}/${sd.getDate()} to ${hm(x.e.slice(11))} ${DOW[ed.getDay()]} ${ed.getMonth()+1}/${ed.getDate()}`
+          : `${hm(x.s.slice(11))} to ${hm(x.e.slice(11))}`;
+        const span= `Deal close ${md(x.close)}`;
+        return `<div class="job ${rc(x.r)}">
+          <div class="site">${x.site}${multi}<small>${x.city}</small></div>
+          <div class="time">${t}<small>${span}</small></div>
+          <div class="resp ${f.clash.has(x.site)?"hit":""}"><span class="chip ${rc(x.r)}">${x.r}</span></div>
+          <div class="links"><a class="btn" href="${HS}0-3/${x.deal}" target="_blank" rel="noopener">Deal</a><a class="btn" href="${HS}2-222837041/${x.pj}" target="_blank" rel="noopener">Placeholder</a></div>
+        </div>`}).join("")}</div></div>
+    </article>`;
+  });
+  if(cur) html+=`</div></section>`;
+  document.getElementById("board").innerHTML = html || `<div class="empty">No jobs match these filters. Clear the search or turn off "Flagged days only".</div>`;
+  document.getElementById("count").textContent=`${shown} day${shown===1?"":"s"} · ${jobsShown.size} site${jobsShown.size===1?"":"s"}`;
+  document.getElementById("board").style.display="flex";
+  document.getElementById("board").style.flexDirection="column";
+  document.getElementById("board").style.gap="22px";
+}
+["q","resp","flagOnly"].forEach(id=>document.getElementById(id).addEventListener("input",render));
+render();
+</script>
+
+</body></html>
